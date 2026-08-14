@@ -1,4 +1,4 @@
-BOMBACHA NAVEGADOR ANDROID — TESTE 0.1.1
+BOMBACHA NAVEGADOR ANDROID — TESTE 0.1.2
 
 PRONTO PARA GITHUB ACTIONS.
 
@@ -24,3 +24,8 @@ https://vk.com/board111248001
 
 A extensão Bombacha continua embutida em:
 app/src/main/assets/bombacha/
+
+
+CORRECAO 0.1.2:
+- AndroidX habilitado para compatibilidade com GeckoView e dependencias Android modernas.
+- Jetifier habilitado como compatibilidade adicional durante os testes.
