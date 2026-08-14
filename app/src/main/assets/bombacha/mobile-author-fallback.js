@@ -1,7 +1,7 @@
 (() => {
   "use strict";
-  if (globalThis.__bombachaMobileAuthorFallbackV2) return;
-  globalThis.__bombachaMobileAuthorFallbackV2 = true;
+  if (globalThis.__bombachaMobileAuthorFallbackV3) return;
+  globalThis.__bombachaMobileAuthorFallbackV3 = true;
 
   const api = globalThis.browser || globalThis.chrome;
   if (!api?.storage?.local) return;
@@ -40,21 +40,21 @@
       .${MARK_CLASS}{
         position:absolute!important;
         right:16px!important;
-        bottom:8px!important;
+        top:8px!important;
         z-index:2!important;
-        max-width:36%!important;
-        padding-left:6px!important;
+        max-width:38%!important;
+        padding:1px 0 1px 7px!important;
         overflow:hidden!important;
         white-space:nowrap!important;
         text-overflow:ellipsis!important;
-        background:var(--vkui--color_background_content,#fff)!important;
+        background:linear-gradient(90deg,transparent,var(--vkui--color_background_content,#fff) 10%)!important;
         color:var(--vkui--color_text_secondary,#818c99)!important;
-        font:400 10.5px/16px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif!important;
+        font:400 10.5px/15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif!important;
         letter-spacing:0!important;
         text-transform:none!important;
         pointer-events:none!important;
       }
-      .bombacha-mobile-topic-row{position:relative!important}
+      .bombacha-mobile-topic-row{position:relative!important;padding-right:4px!important}
     `;
     (document.head || document.documentElement).appendChild(style);
   }
@@ -225,7 +225,7 @@
       mark.dataset.topicId = item.id;
       row.appendChild(mark);
     }
-    mark.textContent = data.name;
+    mark.textContent = `Autor: ${data.name}`;
     mark.title = `Autor original: ${data.name}`;
     mark.dataset.state = "ready";
   }

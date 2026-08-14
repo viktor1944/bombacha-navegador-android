@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "Bombacha Extensões — Android Teste",
-  "version": "1.0.62",
-  "description": "Build de teste da Bombacha Extensões para Firefox Android, com embeds de YouTube, Instagram, TikTok, X/Twitter e Vocaroo, autor original compacto na lista, botão de atualizar Discussões e links diretos no VK.",
+  "version": "1.0.63",
+  "description": "Bombacha Android embutida no Bombacha Navegador: embeds de YouTube, Instagram, TikTok, X/Twitter e Vocaroo, links diretos, autor compacto e botão Atualizar no cabeçalho do fórum.",
   "permissions": [
     "storage",
     "https://vk.ru/*",

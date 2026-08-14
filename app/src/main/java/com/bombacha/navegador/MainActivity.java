@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -108,11 +107,10 @@ public class MainActivity extends Activity {
             GeckoRuntimeSettings settings = new GeckoRuntimeSettings.Builder()
                     .remoteDebuggingEnabled(true)
                     .build();
-            runtime = GeckoRuntime.create(this, settings);
+            runtime = GeckoRuntime.create(getApplicationContext(), settings);
         }
 
         session = new GeckoSession();
-        session.setContentDelegate(new GeckoSession.ContentDelegate() {});
         session.open(runtime);
         geckoView.setSession(session);
 
