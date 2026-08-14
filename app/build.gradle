@@ -10,8 +10,8 @@ android {
         applicationId 'com.bombacha.navegador'
         minSdk 26
         targetSdk 36
-        versionCode 1
-        versionName '0.1.0'
+        versionCode 2
+        versionName '0.1.1'
     }
 
     compileOptions {
@@ -28,5 +28,5 @@ android {
 
 dependencies {
     // Current GeckoView Nightly matching the Mozilla JavaDoc snapshot used for this project.
-    implementation 'org.mozilla.geckoview:geckoview-nightly:156.0.20260814041239'
+    implementation 'org.mozilla.geckoview:geckoview-nightly:+'
 }

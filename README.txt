@@ -1,31 +1,26 @@
-BOMBACHA NAVEGADOR ANDROID — TESTE 0.1.0
+BOMBACHA NAVEGADOR ANDROID — TESTE 0.1.1
 
-O que esta versão faz:
-- Abre diretamente em: https://vk.com/board111248001
-- Usa GeckoView, o motor Gecko/Firefox para apps Android.
-- Leva a Bombacha Extensões 1.0.62 embutida dentro do APK.
-- A extensão é instalada internamente pelo GeckoView; não depende de assinatura do AMO para funcionar dentro deste app.
-- Possui Voltar, Avançar, Início, barra de endereço e Atualizar.
-- Depuração remota do GeckoView fica habilitada nesta versão de TESTE.
+PRONTO PARA GITHUB ACTIONS.
 
-IMPORTANTE:
-Este pacote é o PROJETO Android Studio, não um APK já compilado.
-O ambiente usado para gerar este pacote não possui o Android SDK/Gradle completo para produzir o APK localmente.
+O que foi corrigido nesta versão:
+- Adicionado o repositório oficial Mozilla Nightly: https://nightly.maven.mozilla.org/maven2
+- GeckoView Nightly passa a usar a versão disponível mais recente automaticamente.
+- Workflow .github/workflows/build-apk.yml incluído no pacote.
+- Build configurado com Java 17, Gradle 8.13 e Android SDK 36.
+- O APK gerado aparece em Actions > execução concluída > Artifacts > Bombacha-Navegador-APK.
 
-Para compilar no Android Studio:
-1. Abra a pasta Bombacha_Navegador_Android_0.1.0.
-2. Aguarde o Gradle sincronizar.
-3. Build > Build APK(s).
+Uso:
+1. Extraia este ZIP.
+2. No repositório GitHub, use Add file > Upload files.
+3. Arraste TODO o conteúdo extraído, inclusive a pasta .github.
+   OBS.: no Windows, a pasta .github pode parecer oculta. Ela já está dentro deste ZIP.
+4. Faça Commit changes na branch main.
+5. Vá para Actions. O build inicia automaticamente.
+6. Quando ficar verde, baixe o artifact Bombacha-Navegador-APK.
+7. Extraia o artifact e instale app-debug.apk no Android.
 
-A configuração usa:
-- Android Gradle Plugin 8.13.0
-- Gradle 8.13
-- compileSdk/targetSdk 36
-- Java 17
-- GeckoView Nightly 156.0.20260814041239
+Página inicial:
+https://vk.com/board111248001
 
-A extensão embutida está em:
+A extensão Bombacha continua embutida em:
 app/src/main/assets/bombacha/
-
-Para atualizar a Bombacha no navegador no futuro:
-substitua os arquivos dessa pasta pelos arquivos descompactados da nova versão da extensão e aumente a versão no manifest.json da extensão.

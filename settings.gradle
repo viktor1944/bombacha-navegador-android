@@ -11,7 +11,14 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url "https://maven.mozilla.org/maven2/" }
+        maven {
+            name = "Mozilla Nightly"
+            url = uri("https://nightly.maven.mozilla.org/maven2")
+        }
+        maven {
+            name = "Mozilla Releases"
+            url = uri("https://maven.mozilla.org/maven2/")
+        }
     }
 }
 
