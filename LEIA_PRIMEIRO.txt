@@ -1,4 +1,4 @@
-BOMBACHA FIREFOX/FENIX 0.2.4 — PACOTE ÚNICO PARA GITHUB
+BOMBACHA FIREFOX/FENIX 0.2.5 — PACOTE ÚNICO PARA GITHUB
 
 ESTE ZIP JÁ TEM TUDO.
 NÃO use nenhum build-apk.yml separado.
@@ -14,7 +14,7 @@ IMPORTANTE: a pasta .github faz parte do pacote e precisa subir junto.
 Depois: Commit changes -> Actions -> Build Bombacha Firefox Android.
 
 
-CORREÇÃO 0.2.4
+CORREÇÃO 0.2.5
 - Diagnóstico confirmou que o bootstrap concluía, mas era encerrado pelo timeout de 35 minutos.
 - Bootstrap agora tem limite de 65 minutos.
 - mach build e Gradle continuam limitados a 35 minutos cada.
