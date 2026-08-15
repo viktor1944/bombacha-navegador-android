@@ -22,7 +22,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 140
+    timeout-minutes: 150
 
     steps:
       - name: Liberar espaço para o Firefox
@@ -67,6 +67,32 @@ jobs:
           git -C firefox rev-parse HEAD | tee bombacha-kit/logs/firefox-commit.txt
           git -C firefox log -1 --pretty=fuller | tee bombacha-kit/logs/firefox-source.txt
 
+      - name: Bootstrap oficial Firefox Android
+        working-directory: firefox
+        shell: bash
+        run: |
+          set -euxo pipefail
+          timeout --foreground --signal=TERM 80m stdbuf -oL -eL ./mach --no-interactive bootstrap \
+            --application-choice="GeckoView/Firefox for Android" \
+            2>&1 | tee ../bombacha-kit/logs/bootstrap.log
+          echo "BOOTSTRAP_OK $(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee ../bombacha-kit/logs/bootstrap-ok.txt
+          df -h | tee ../bombacha-kit/logs/disk-after-bootstrap.txt
+
+      - name: Configurar Java e Android SDK do bootstrap
+        shell: bash
+        run: |
+          set -euxo pipefail
+          JAVA_DIR=$(find "$MOZBUILD_STATE_PATH/jdk" -mindepth 1 -maxdepth 1 -type d -name 'jdk*' | sort | head -1)
+          test -n "$JAVA_DIR"
+          test -d "$MOZBUILD_STATE_PATH/android-sdk-linux"
+          echo "JAVA_HOME=$JAVA_DIR" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$MOZBUILD_STATE_PATH/android-sdk-linux" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$MOZBUILD_STATE_PATH/android-sdk-linux" >> "$GITHUB_ENV"
+          {
+            echo "JAVA_HOME=$JAVA_DIR"
+            echo "ANDROID_HOME=$MOZBUILD_STATE_PATH/android-sdk-linux"
+          } | tee bombacha-kit/logs/android-env.txt
+
       - name: Aplicar Bombacha ao Firefox
         shell: bash
         run: |
@@ -74,51 +100,17 @@ jobs:
           python3 bombacha-kit/scripts/patch_fenix.py firefox bombacha-kit 2>&1 | tee bombacha-kit/logs/patch.log
           git -C firefox diff -- mobile/android/fenix/app > bombacha-kit/logs/bombacha-patch.diff || true
 
-      # IMPORTANTE: a documentação atual da Mozilla usa exatamente este nome
-      # para bootstrap não-interativo. O modo Artifact é ativado no mozconfig
-      # logo em seguida, em vez de passar "Artifact Mode" no application-choice.
-      - name: Bootstrap oficial Firefox Android
-        working-directory: firefox
-        shell: bash
-        run: |
-          set -euxo pipefail
-          timeout --foreground --signal=TERM 65m stdbuf -oL -eL ./mach --no-interactive bootstrap \
-            --application-choice="GeckoView/Firefox for Android" \
-            2>&1 | tee ../bombacha-kit/logs/bootstrap.log
-          echo "BOOTSTRAP_OK $(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee ../bombacha-kit/logs/bootstrap-ok.txt
-          df -h | tee ../bombacha-kit/logs/disk-after-bootstrap.txt
-
-      - name: Configurar Artifact Mode ARM64
-        working-directory: firefox
-        shell: bash
-        run: |
-          set -euxo pipefail
-          cat > .mozconfig <<'EOF'
-          ac_add_options --enable-project=mobile/android
-          ac_add_options --enable-artifact-builds
-          ac_add_options --target=aarch64
-          mk_add_options MOZ_OBJDIR=./objdir-bombacha
-          mk_add_options AUTOCLOBBER=1
-          EOF
-          cat .mozconfig | tee ../bombacha-kit/logs/mozconfig.txt
-
-      # O Gradle do Fenix atual espera arquivos gerados por mach build, como buildid.h.
-      # Em Artifact Mode isto baixa Gecko pré-compilado em vez de compilar C++/Rust localmente.
-      - name: Preparar artefatos Gecko
-        working-directory: firefox
-        shell: bash
-        run: |
-          set -euxo pipefail
-          timeout --foreground --signal=TERM 35m stdbuf -oL -eL ./mach build \
-            2>&1 | tee ../bombacha-kit/logs/mach-build.log
-
+      # A documentação oficial do Fenix usa este comando diretamente.
+      # Não executamos ./mach build porque não alteramos Gecko/C++/Rust.
       - name: Compilar Fenix Bombacha
         working-directory: firefox
         shell: bash
         run: |
           set -euxo pipefail
-          timeout --foreground --signal=TERM 35m stdbuf -oL -eL ./mach gradle fenix:assembleDebug \
+          timeout --foreground --signal=TERM 60m stdbuf -oL -eL ./mach gradle fenix:assembleDebug \
+            --stacktrace \
             2>&1 | tee ../bombacha-kit/logs/gradle-build.log
+          echo "GRADLE_OK $(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee ../bombacha-kit/logs/gradle-ok.txt
 
       - name: Localizar APK ARM64
         shell: bash
@@ -128,7 +120,10 @@ jobs:
           find firefox -type f -name '*.apk' -print | sort | tee bombacha-kit/logs/apks-found.txt
           APK=$(grep -Ei '/arm64-v8a/|arm64|aarch64' bombacha-kit/logs/apks-found.txt | grep -Ei 'fenix|app' | head -1 || true)
           if [ -z "$APK" ]; then
-            APK=$(grep -Ei 'fenix|app' bombacha-kit/logs/apks-found.txt | head -1 || true)
+            APK=$(grep -Ei 'gradle/build/mobile/android/fenix/app/outputs/apk/debug/.+\.apk$' bombacha-kit/logs/apks-found.txt | head -1 || true)
+          fi
+          if [ -z "$APK" ]; then
+            APK=$(grep -Ei 'fenix|app' bombacha-kit/logs/apks-found.txt | grep -v 'third_party/chromium' | head -1 || true)
           fi
           test -n "$APK"
           cp "$APK" out/Bombacha-Navegador-Firefox-Android-arm64.apk
