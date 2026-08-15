@@ -1,37 +1,116 @@
-name: Build Bombacha APK
+name: Build Bombacha Firefox Android
 
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
+    paths:
+      - 'bombacha/**'
+      - 'scripts/**'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 240
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
+      - name: Liberar espaço para o Firefox
+        uses: easimon/maximize-build-space@master
         with:
-          distribution: temurin
-          java-version: '17'
+          root-reserve-mb: 4096
+          temp-reserve-mb: 256
+          swap-size-mb: 2048
+          remove-dotnet: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+          remove-android: 'false'
 
-      - uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK
-        run: yes | sdkmanager "platforms;android-36" "build-tools;35.0.0"
-
-      - name: Install Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Baixar kit Bombacha
+        uses: actions/checkout@v7
         with:
-          gradle-version: '8.13'
+          path: bombacha-kit
 
-      - name: Build Bombacha APK
-        run: gradle :app:assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Baixar Firefox Android estável (branch release)
+        uses: actions/checkout@v7
         with:
-          name: Bombacha-Navegador-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          repository: mozilla-firefox/firefox
+          ref: release
+          fetch-depth: 1
+          path: firefox
+
+      - name: Informações do fonte
+        run: |
+          set -eux
+          mkdir -p bombacha-kit/logs
+          git -C firefox rev-parse HEAD | tee bombacha-kit/logs/firefox-commit.txt
+          git -C firefox log -1 --pretty=fuller | tee bombacha-kit/logs/firefox-source.txt
+          df -h | tee bombacha-kit/logs/disk-before.txt
+
+      - name: Aplicar Bombacha ao Firefox
+        run: |
+          set -o pipefail
+          python3 bombacha-kit/scripts/patch_fenix.py firefox bombacha-kit 2>&1 | tee bombacha-kit/logs/patch.log
+          git -C firefox diff -- mobile/android/fenix/app > bombacha-kit/logs/bombacha-patch.diff || true
+
+      - name: Preparar Firefox Android em Artifact Mode
+        working-directory: firefox
+        run: |
+          set -o pipefail
+          ./mach --no-interactive bootstrap --application-choice="GeckoView/Firefox for Android Artifact Mode" 2>&1 | tee ../bombacha-kit/logs/bootstrap.log
+          if ! grep -q -- '--target=aarch64' .mozconfig; then
+            printf '\n# Bombacha: somente celular ARM64\nac_add_options --target=aarch64\n' >> .mozconfig
+          fi
+          echo '--- .mozconfig final ---' | tee ../bombacha-kit/logs/mozconfig.txt
+          cat .mozconfig | tee -a ../bombacha-kit/logs/mozconfig.txt
+
+      - name: Compilar Firefox/Bombacha
+        working-directory: firefox
+        run: |
+          set -o pipefail
+          ./mach gradle fenix:assembleDebug 2>&1 | tee ../bombacha-kit/logs/build.log
+
+      - name: Localizar APK ARM64
+        run: |
+          set -euxo pipefail
+          mkdir -p out
+          find firefox -type f -name '*.apk' -print | sort | tee bombacha-kit/logs/apks-found.txt
+          APK=$(grep -Ei '/arm64-v8a/|arm64|aarch64' bombacha-kit/logs/apks-found.txt | grep -Ei 'fenix|app' | head -1 || true)
+          if [ -z "$APK" ]; then
+            APK=$(grep -Ei 'fenix|app' bombacha-kit/logs/apks-found.txt | head -1 || true)
+          fi
+          test -n "$APK"
+          cp "$APK" out/Bombacha-Navegador-Firefox-Android-arm64.apk
+          sha256sum out/Bombacha-Navegador-Firefox-Android-arm64.apk | tee bombacha-kit/logs/apk-sha256.txt
+          ls -lh out/Bombacha-Navegador-Firefox-Android-arm64.apk
+
+      - name: Enviar APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: Bombacha-Navegador-Firefox-Android
+          path: out/Bombacha-Navegador-Firefox-Android-arm64.apk
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Preparar diagnóstico se falhar
+        if: failure()
+        run: |
+          mkdir -p bombacha-kit/logs
+          df -h > bombacha-kit/logs/disk-after-failure.txt || true
+          git -C firefox rev-parse HEAD > bombacha-kit/logs/firefox-commit.txt 2>/dev/null || true
+          git -C firefox diff -- mobile/android/fenix/app > bombacha-kit/logs/bombacha-patch.diff 2>/dev/null || true
+          find firefox -type f -name '*.apk' -print > bombacha-kit/logs/apks-found.txt 2>/dev/null || true
+
+      - name: Enviar diagnóstico completo
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Bombacha-Fenix-Diagnostics
+          path: bombacha-kit/logs/
+          retention-days: 1
+          if-no-files-found: warn
