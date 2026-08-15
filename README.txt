@@ -1,31 +1,36 @@
-BOMBACHA NAVEGADOR ANDROID — TESTE 0.1.2
+BOMBACHA NAVEGADOR — FIREFOX ANDROID / FENIX 0.2.1
+===================================================
 
-PRONTO PARA GITHUB ACTIONS.
+O QUE É
+- Firefox Android/Fenix oficial da Mozilla, com a interface normal do Firefox.
+- O workflow baixa a branch oficial "release" da Mozilla no momento da compilação.
+- A Bombacha vem embutida como WebExtension dentro do APK.
+- Abre/seleciona automaticamente https://vk.com/board111248001 depois que a extensão está pronta.
+- APK separado do Firefox oficial: package com.bombacha.browser.
+- Build somente ARM64 para reduzir tempo/tamanho.
 
-O que foi corrigido nesta versão:
-- Adicionado o repositório oficial Mozilla Nightly: https://nightly.maven.mozilla.org/maven2
-- GeckoView Nightly passa a usar a versão disponível mais recente automaticamente.
-- Workflow .github/workflows/build-apk.yml incluído no pacote.
-- Build configurado com Java 17, Gradle 8.13 e Android SDK 36.
-- O APK gerado aparece em Actions > execução concluída > Artifacts > Bombacha-Navegador-APK.
+BOMBACHA EMBUTIDA: 1.0.64
+- Embed: YouTube, Instagram, TikTok, X/Twitter e Vocaroo.
+- Proteção contra embeds duplicados.
+- Links externos diretos.
+- Autor original/cache mobile quando disponível.
+- Botão Atualizar dentro do cabeçalho do fórum.
 
-Uso:
+IMPORTANTE SOBRE A VERIFICAÇÃO "ROBÔ" DO VK
+- Este projeto NÃO tenta burlar CAPTCHA/verificação anti-bot.
+- Como agora é o Firefox/Fenix completo, cookies, armazenamento e comportamento do navegador são os normais do Firefox, o que pode reduzir verificações indevidas.
+- Se o VK exigir uma verificação legítima, ela deve ser concluída pelo usuário.
+
+COMO USAR NO SEU REPOSITÓRIO ATUAL
 1. Extraia este ZIP.
-2. No repositório GitHub, use Add file > Upload files.
-3. Arraste TODO o conteúdo extraído, inclusive a pasta .github.
-   OBS.: no Windows, a pasta .github pode parecer oculta. Ela já está dentro deste ZIP.
-4. Faça Commit changes na branch main.
-5. Vá para Actions. O build inicia automaticamente.
-6. Quando ficar verde, baixe o artifact Bombacha-Navegador-APK.
-7. Extraia o artifact e instale app-debug.apk no Android.
+2. GitHub > Add file > Upload files.
+3. Arraste TODO o conteúdo extraído.
+4. Commit changes.
+5. O arquivo .github/workflows/build-apk.yml substitui o workflow antigo.
+6. Abra Actions > Build Bombacha Firefox Android.
+7. Quando ficar verde, baixe o artifact "Bombacha-Navegador-Firefox-Android".
+8. Extraia e instale o APK no celular.
 
-Página inicial:
-https://vk.com/board111248001
-
-A extensão Bombacha continua embutida em:
-app/src/main/assets/bombacha/
-
-
-CORRECAO 0.1.2:
-- AndroidX habilitado para compatibilidade com GeckoView e dependencias Android modernas.
-- Jetifier habilitado como compatibilidade adicional durante os testes.
+Se o build falhar, o workflow cria automaticamente:
+Bombacha-Fenix-Diagnostics
+com patch.log, bootstrap.log, build.log, commit da Mozilla, espaço em disco e diff aplicado.
