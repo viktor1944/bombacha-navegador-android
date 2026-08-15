@@ -1,5 +1,13 @@
 name: Build Bombacha Firefox Android
 
+env:
+  # Mantem os downloads pesados do Firefox/Android fora da particao raiz pequena do runner.
+  MOZBUILD_STATE_PATH: ${{ github.workspace }}/.bombacha-mozbuild
+  GRADLE_USER_HOME: ${{ github.workspace }}/.bombacha-gradle
+  XDG_CACHE_HOME: ${{ github.workspace }}/.bombacha-cache
+  ANDROID_USER_HOME: ${{ github.workspace }}/.bombacha-android-home
+  TMPDIR: ${{ github.workspace }}/.bombacha-tmp
+
 on:
   workflow_dispatch:
   push:
@@ -21,9 +29,9 @@ jobs:
       - name: Liberar espaço para o Firefox
         uses: easimon/maximize-build-space@master
         with:
-          root-reserve-mb: 4096
-          temp-reserve-mb: 256
-          swap-size-mb: 2048
+          root-reserve-mb: 8192
+          temp-reserve-mb: 1024
+          swap-size-mb: 1024
           remove-dotnet: 'true'
           remove-haskell: 'true'
           remove-codeql: 'true'
@@ -42,6 +50,27 @@ jobs:
           ref: release
           fetch-depth: 1
           path: firefox
+
+      - name: Preparar volume grande para Mozilla SDK e caches
+        run: |
+          set -euxo pipefail
+          mkdir -p "$MOZBUILD_STATE_PATH" "$GRADLE_USER_HOME" "$XDG_CACHE_HOME" "$ANDROID_USER_HOME" "$TMPDIR" bombacha-kit/logs
+
+          # Algumas rotinas antigas ainda procuram estes caminhos em $HOME.
+          # Ligamos os caminhos tradicionais ao volume grande do workspace.
+          rm -rf "$HOME/.mozbuild" "$HOME/.gradle"
+          ln -s "$MOZBUILD_STATE_PATH" "$HOME/.mozbuild"
+          ln -s "$GRADLE_USER_HOME" "$HOME/.gradle"
+
+          {
+            echo "MOZBUILD_STATE_PATH=$MOZBUILD_STATE_PATH"
+            echo "GRADLE_USER_HOME=$GRADLE_USER_HOME"
+            echo "XDG_CACHE_HOME=$XDG_CACHE_HOME"
+            echo "ANDROID_USER_HOME=$ANDROID_USER_HOME"
+            echo "TMPDIR=$TMPDIR"
+            df -h
+            df -h "$GITHUB_WORKSPACE"
+          } | tee bombacha-kit/logs/storage-layout.txt
 
       - name: Informações do fonte
         run: |
@@ -105,6 +134,7 @@ jobs:
           git -C firefox rev-parse HEAD > bombacha-kit/logs/firefox-commit.txt 2>/dev/null || true
           git -C firefox diff -- mobile/android/fenix/app > bombacha-kit/logs/bombacha-patch.diff 2>/dev/null || true
           find firefox -type f -name '*.apk' -print > bombacha-kit/logs/apks-found.txt 2>/dev/null || true
+          du -sh "$MOZBUILD_STATE_PATH" "$GRADLE_USER_HOME" "$XDG_CACHE_HOME" "$ANDROID_USER_HOME" "$TMPDIR" > bombacha-kit/logs/cache-sizes.txt 2>/dev/null || true
 
       - name: Enviar diagnóstico completo
         if: failure()
