@@ -1,4 +1,4 @@
-BOMBACHA NAVEGADOR — FIREFOX ANDROID / FENIX 0.2.2
+BOMBACHA NAVEGADOR — FIREFOX ANDROID / FENIX 0.2.4
 ===================================================
 
 O QUE É
@@ -36,9 +36,24 @@ Bombacha-Fenix-Diagnostics
 com patch.log, bootstrap.log, build.log, commit da Mozilla, espaço em disco e diff aplicado.
 
 
-CORRECAO 0.2.2
+CORRECAO 0.2.4
 ================
 - Corrige falha "No space left on device" do mach bootstrap.
 - Mozilla SDK, Android SDK, Gradle e caches agora ficam no volume grande do workspace.
 - Reserva mais espaco na particao raiz do runner para ferramentas do sistema.
 - O patch da Bombacha/Fenix permanece o mesmo, pois o diagnostico confirmou que ele foi aplicado com sucesso.
+
+
+CORRECAO 0.2.4
+- Bootstrap nao-interativo agora usa o nome oficial documentado pela Mozilla: GeckoView/Firefox for Android.
+- Artifact Mode e ARM64 sao ativados explicitamente no .mozconfig.
+- Executa ./mach build antes do Gradle, necessario para gerar buildid.h e instalar artefatos Gecko.
+- Bootstrap, mach build e Gradle possuem timeout individual para nunca ficar horas travado silenciosamente.
+- Logs separados de bootstrap, mach build e Gradle sao enviados no Diagnostics em caso de falha.
+
+
+CORREÇÃO 0.2.4
+- Diagnóstico confirmou que o bootstrap concluía, mas era encerrado pelo timeout de 35 minutos.
+- Bootstrap agora tem limite de 65 minutos.
+- mach build e Gradle continuam limitados a 35 minutos cada.
+- O workflow grava bootstrap-ok.txt e estado do disco após o bootstrap.
