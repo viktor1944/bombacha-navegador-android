@@ -1,4 +1,4 @@
-BOMBACHA NAVEGADOR — FIREFOX ANDROID / FENIX 0.2.5
+BOMBACHA NAVEGADOR — FIREFOX ANDROID / FENIX 0.2.6
 ===================================================
 
 O QUE É
@@ -57,3 +57,13 @@ CORREÇÃO 0.2.5
 - Bootstrap agora tem limite de 65 minutos.
 - mach build e Gradle continuam limitados a 35 minutos cada.
 - O workflow grava bootstrap-ok.txt e estado do disco após o bootstrap.
+
+
+CORREÇÃO 0.2.6
+================
+- Diagnóstico da 0.2.5 mostrou que o bootstrap terminou e o patch da Bombacha foi aplicado.
+- A falha acontecia porque `mach gradle` era chamado antes de existir um contexto Android configurado.
+- Agora roda `./mach configure` após criar o mozconfig Artifact Mode ARM64.
+- O workflow valida `MOZ_BUILD_APP=mobile/android` antes de iniciar o Gradle.
+- Não executa `mach build` completo: primeiro cria apenas o contexto/config.status necessário e depois compila o Fenix.
+- Diagnostics agora inclui configure.log, config.status.json e mach-environment.json.
