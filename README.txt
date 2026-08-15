@@ -1,4 +1,4 @@
-BOMBACHA NAVEGADOR — FIREFOX ANDROID / FENIX 0.2.1
+BOMBACHA NAVEGADOR — FIREFOX ANDROID / FENIX 0.2.2
 ===================================================
 
 O QUE É
@@ -34,3 +34,11 @@ COMO USAR NO SEU REPOSITÓRIO ATUAL
 Se o build falhar, o workflow cria automaticamente:
 Bombacha-Fenix-Diagnostics
 com patch.log, bootstrap.log, build.log, commit da Mozilla, espaço em disco e diff aplicado.
+
+
+CORRECAO 0.2.2
+================
+- Corrige falha "No space left on device" do mach bootstrap.
+- Mozilla SDK, Android SDK, Gradle e caches agora ficam no volume grande do workspace.
+- Reserva mais espaco na particao raiz do runner para ferramentas do sistema.
+- O patch da Bombacha/Fenix permanece o mesmo, pois o diagnostico confirmou que ele foi aplicado com sucesso.
