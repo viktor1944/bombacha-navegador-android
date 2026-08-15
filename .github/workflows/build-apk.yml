@@ -22,7 +22,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 140
 
     steps:
       - name: Liberar espaço para o Firefox
@@ -82,9 +82,11 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          timeout --signal=TERM 35m stdbuf -oL -eL ./mach --no-interactive bootstrap \
+          timeout --foreground --signal=TERM 65m stdbuf -oL -eL ./mach --no-interactive bootstrap \
             --application-choice="GeckoView/Firefox for Android" \
             2>&1 | tee ../bombacha-kit/logs/bootstrap.log
+          echo "BOOTSTRAP_OK $(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee ../bombacha-kit/logs/bootstrap-ok.txt
+          df -h | tee ../bombacha-kit/logs/disk-after-bootstrap.txt
 
       - name: Configurar Artifact Mode ARM64
         working-directory: firefox
@@ -107,7 +109,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          timeout --signal=TERM 45m stdbuf -oL -eL ./mach build \
+          timeout --foreground --signal=TERM 35m stdbuf -oL -eL ./mach build \
             2>&1 | tee ../bombacha-kit/logs/mach-build.log
 
       - name: Compilar Fenix Bombacha
@@ -115,7 +117,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          timeout --signal=TERM 50m stdbuf -oL -eL ./mach gradle fenix:assembleDebug \
+          timeout --foreground --signal=TERM 35m stdbuf -oL -eL ./mach gradle fenix:assembleDebug \
             2>&1 | tee ../bombacha-kit/logs/gradle-build.log
 
       - name: Localizar APK ARM64
